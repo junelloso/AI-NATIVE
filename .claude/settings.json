@@ -1,26 +1,22 @@
 {
   "mcpServers": {
     "obsidian-docs": {
-      "command": "npx",
+      "command": "mcp-server-filesystem",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "~/obsidian-vault/AI-NATIVE"
+        "/home/user/obsidian-vault/AI-NATIVE"
       ],
       "description": "AI-NATIVE Obsidian documentation vault — architecture, ADRs, designs, runbooks"
     },
     "project-code": {
-      "command": "npx",
+      "command": "mcp-server-filesystem",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "."
+        "/home/user/AI-NATIVE"
       ],
       "description": "AI-NATIVE source code repository root"
     }
   },
   "notes": {
-    "postgres": "Uncomment and configure when PostgreSQL database is created (Phase 1)",
-    "github": "Uncomment and configure when GitHub org and repos are finalized (Phase 1)"
+    "postgres": "Add when PostgreSQL is created (Phase 1) — see settings.local.json.example",
+    "github": "Add when GitHub org is set up (Phase 1) — see settings.local.json.example"
   }
 }
