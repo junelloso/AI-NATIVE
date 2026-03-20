@@ -1,0 +1,50 @@
+# Claude Code local settings (contains personal paths and tokens)
+.claude/settings.local.json
+
+# Environment files (use .env.example pattern)
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+.npm/
+dist/
+.next/
+.turbo/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+.terraform.lock.hcl
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+
+# Secrets (never commit these)
+*.pem
+*.key
+*.p12
+*.pfx
+kubeconfig
+*credentials*
+*secrets*
