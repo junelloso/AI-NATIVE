@@ -1,15 +1,26 @@
 {
-  "_readme": "Copy this file to settings.local.json and fill in your personal values. settings.local.json is gitignored.",
+  "_readme": "Copy this to settings.local.json and update paths. settings.local.json is gitignored — never commit it.",
   "mcpServers": {
     "obsidian-docs": {
-      "command": "npx",
+      "command": "mcp-server-filesystem",
       "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "/home/YOUR_USERNAME/obsidian-vault/AI-NATIVE"
+        "/REPLACE/WITH/YOUR/PATH/TO/AI-NATIVE/vault"
+      ],
+      "_examples": {
+        "macOS": "/Users/yourname/repos/AI-NATIVE/vault",
+        "Linux": "/home/yourname/repos/AI-NATIVE/vault",
+        "Windows": "C:/Users/yourname/repos/AI-NATIVE/vault"
+      }
+    },
+    "project-code": {
+      "command": "mcp-server-filesystem",
+      "args": [
+        "/REPLACE/WITH/YOUR/PATH/TO/AI-NATIVE"
       ]
     },
     "postgres-db": {
+      "_disabled": true,
+      "_enable_when": "Phase 1 — PostgreSQL created. Remove _disabled key to activate.",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres"],
       "env": {
@@ -17,10 +28,12 @@
       }
     },
     "github": {
+      "_disabled": true,
+      "_enable_when": "Phase 1 — Replace token with your GitHub PAT. Remove _disabled key to activate.",
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_YOUR_PERSONAL_ACCESS_TOKEN_HERE"
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_REPLACE_WITH_YOUR_TOKEN"
       }
     }
   }

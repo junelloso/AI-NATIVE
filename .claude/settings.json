@@ -3,7 +3,7 @@
     "obsidian-docs": {
       "command": "mcp-server-filesystem",
       "args": [
-        "/home/user/obsidian-vault/AI-NATIVE"
+        "/home/user/AI-NATIVE/vault"
       ],
       "description": "AI-NATIVE Obsidian documentation vault — architecture, ADRs, designs, runbooks"
     },
