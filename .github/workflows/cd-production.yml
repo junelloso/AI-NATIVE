@@ -1,0 +1,67 @@
+name: CD — Deploy to Production
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production     # Requires 2 approvals in GitHub Environments settings
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PROD_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Tag staging images for production (promote — no rebuild)
+        run: |
+          ECR_REGISTRY=${{ steps.ecr-login.outputs.registry }}
+          for SERVICE in api frontend ai-agent; do
+            # Re-tag the already-scanned staging image
+            docker pull $ECR_REGISTRY/ai-native/$SERVICE:${{ github.sha }}
+            docker tag  $ECR_REGISTRY/ai-native/$SERVICE:${{ github.sha }} \
+                        $ECR_REGISTRY/ai-native/$SERVICE:prod-${{ github.sha }}
+            docker push $ECR_REGISTRY/ai-native/$SERVICE:prod-${{ github.sha }}
+          done
+
+      - name: Update production Helm values
+        run: |
+          sed -i "s/imageTag:.*/imageTag: prod-${{ github.sha }}/" infra/helm/ai-native/values-prod.yaml
+          git config user.name "CI Bot"
+          git config user.email "ci@ai-native.internal"
+          git add infra/helm/ai-native/values-prod.yaml
+          git commit -m "ci: deploy prod-${{ github.sha }} to production [skip ci]"
+          git push
+
+      - name: Wait for ArgoCD production sync
+        run: |
+          argocd app wait ai-native-prod \
+            --health \
+            --timeout 600 \
+            --server ${{ secrets.ARGOCD_SERVER }} \
+            --auth-token ${{ secrets.ARGOCD_TOKEN }}
+
+      - name: Verify SLOs post-deploy (5 min window)
+        run: |
+          sleep 300
+          # Check Prometheus SLO metrics
+          ERROR_RATE=$(curl -s "${{ vars.PROMETHEUS_URL }}/api/v1/query" \
+            --data 'query=rate(http_requests_total{status=~"5.."}[5m])' \
+            | jq '.data.result[0].value[1]' -r)
+          if (( $(echo "$ERROR_RATE > 0.05" | bc -l) )); then
+            echo "ERROR: Error rate $ERROR_RATE exceeds 5% SLO threshold"
+            exit 1
+          fi
+          echo "SLO check passed — error rate: $ERROR_RATE"

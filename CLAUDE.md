@@ -76,8 +76,19 @@ Before implementing any significant technology choice:
 
 ## Current Active Tasks (Phase 0)
 
-- [ ] Finalize system architecture diagrams
-- [ ] Complete threat model
-- [ ] Define coding standards and team onboarding
-- [ ] Set up CI/CD skeleton
-- [ ] Configure MCP connections (Obsidian → PostgreSQL → GitHub)
+- [x] Finalize system architecture diagrams → `vault/01-Architecture/`
+- [x] Complete threat model → `vault/04-Security/Threat-Model.md` + `Security-Controls.md`
+- [x] Define coding standards and team onboarding → `vault/07-Team/`
+- [x] Set up CI/CD skeleton → `.github/workflows/` (ci, cd-staging, cd-production, security-scan)
+- [x] Configure MCP connections → `.claude/settings.json` (obsidian-docs + project-code live)
+- [ ] PostgreSQL MCP — enable when DB is provisioned (Phase 1)
+- [ ] GitHub MCP — enable when PAT is added to `settings.local.json` (Phase 1)
+
+## Phase 0 Complete → Phase 1 Next
+
+Phase 1 tasks:
+- [ ] Provision AWS infrastructure (VPC, EKS, RDS, ElastiCache, Qdrant)
+- [ ] Deploy Istio service mesh
+- [ ] Bootstrap HashiCorp Vault
+- [ ] Create service skeletons: `services/api/`, `services/frontend/`, `services/ai-agent/`
+- [ ] First working CI/CD run on a real service

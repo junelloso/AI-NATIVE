@@ -1,0 +1,57 @@
+name: CD — Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      id-token: write   # OIDC auth to AWS
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC — no static keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_STAGING_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push images to ECR
+        run: |
+          ECR_REGISTRY=${{ steps.ecr-login.outputs.registry }}
+          for SERVICE in api frontend ai-agent; do
+            docker build -t $ECR_REGISTRY/ai-native/$SERVICE:${{ github.sha }} services/$SERVICE/
+            docker push $ECR_REGISTRY/ai-native/$SERVICE:${{ github.sha }}
+          done
+
+      - name: Update Helm values (triggers ArgoCD sync)
+        run: |
+          # Update image tag in Helm values — ArgoCD watches this file
+          sed -i "s/imageTag:.*/imageTag: ${{ github.sha }}/" infra/helm/ai-native/values-staging.yaml
+          git config user.name "CI Bot"
+          git config user.email "ci@ai-native.internal"
+          git add infra/helm/ai-native/values-staging.yaml
+          git commit -m "ci: deploy ${{ github.sha }} to staging [skip ci]"
+          git push
+
+      - name: Wait for ArgoCD sync
+        run: |
+          # ArgoCD CLI health check — waits up to 5 min
+          argocd app wait ai-native-staging \
+            --health \
+            --timeout 300 \
+            --server ${{ secrets.ARGOCD_SERVER }} \
+            --auth-token ${{ secrets.ARGOCD_TOKEN }}
+
+      - name: Run smoke tests
+        run: |
+          npm run test:smoke -- --baseUrl ${{ vars.STAGING_URL }}
